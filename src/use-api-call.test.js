@@ -3,14 +3,18 @@ import { render, screen } from '@testing-library/react';
 import { useApiCall } from 'use-api-call';
 
 const UseApiCallTestHarness = ({ apiCall }) => {
-  const { isProcessing, hasError, data } = useApiCall(apiCall, []);
+  const { isProcessing, hasError, data, error } = useApiCall(apiCall, []);
 
   if (isProcessing) {
     return <div>loading</div>;
   }
 
   if (hasError) {
-    return <div>error</div>;
+    return (
+      <div>
+        error <span>{error.message}</span>
+      </div>
+    );
   }
 
   return data.map((item) => <div key={item}>{item}</div>);
@@ -21,7 +25,7 @@ describe('useApiCall', () => {
     const apiCall = jest
       .fn()
       .mockReturnValue(
-        new Promise((resolve) => setTimeout(() => resolve([]), 50))
+        new Promise((resolve) => setTimeout(() => resolve([]), 25))
       );
 
     render(<UseApiCallTestHarness apiCall={apiCall} />);
@@ -34,7 +38,7 @@ describe('useApiCall', () => {
     const apiCall = jest
       .fn()
       .mockReturnValue(
-        new Promise((resolve) => setTimeout(() => resolve(['one']), 50))
+        new Promise((resolve) => setTimeout(() => resolve(['one']), 25))
       );
 
     render(<UseApiCallTestHarness apiCall={apiCall} />);
@@ -49,13 +53,29 @@ describe('useApiCall', () => {
       .fn()
       .mockReturnValue(
         new Promise((_, reject) =>
-          setTimeout(() => reject(Error('broken')), 50)
+          setTimeout(() => reject(Error('broken')), 25)
         )
       );
 
     render(<UseApiCallTestHarness apiCall={apiCall} />);
 
     const errorMessage = await screen.findByText('error');
+    expect(errorMessage).toBeVisible();
+    expect(screen.queryByText('loading')).toBeNull();
+  });
+
+  test('captures error object when apiCall throws', async () => {
+    const apiCall = jest
+      .fn()
+      .mockReturnValue(
+        new Promise((_, reject) =>
+          setTimeout(() => reject(Error('expected error message')), 25)
+        )
+      );
+
+    render(<UseApiCallTestHarness apiCall={apiCall} />);
+
+    const errorMessage = await screen.findByText('expected error message');
     expect(errorMessage).toBeVisible();
     expect(screen.queryByText('loading')).toBeNull();
   });

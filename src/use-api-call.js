@@ -4,14 +4,24 @@ import { createSlice } from '@reduxjs/toolkit';
 const apiCallSlice = createSlice({
   name: 'apiCall',
   reducers: {
-    callBegan: (state) => ({ ...state, isProcessing: true, hasError: false }),
+    callBegan: (state) => ({
+      ...state,
+      isProcessing: true,
+      hasError: false,
+      error: null,
+    }),
     callSuccess: (state, action) => ({
       ...state,
       isProcessing: false,
       hasError: false,
       data: action.payload,
     }),
-    callFailed: (state) => ({ ...state, isProcessing: false, hasError: true }),
+    callFailed: (state, action) => ({
+      ...state,
+      isProcessing: false,
+      hasError: true,
+      error: action.payload,
+    }),
   },
 });
 const { callBegan, callSuccess, callFailed } = apiCallSlice.actions;
@@ -21,13 +31,14 @@ export const useApiCall = (apiServiceCall, initialData) => {
     isProcessing: false,
     hasError: false,
     data: initialData,
+    error: null,
   };
   const [apiCallState, dispatch] = useReducer(
     apiCallSlice.reducer,
     initialState
   );
 
-  function useApiCallEffect() {
+  function apiCallEffect() {
     let hostIsMounted = true;
     const safeDispatch = (action) => hostIsMounted && dispatch(action);
 
@@ -37,7 +48,7 @@ export const useApiCall = (apiServiceCall, initialData) => {
         const result = await apiServiceCall();
         safeDispatch(callSuccess(result));
       } catch (error) {
-        safeDispatch(callFailed());
+        safeDispatch(callFailed(error));
       }
     };
 
@@ -46,7 +57,7 @@ export const useApiCall = (apiServiceCall, initialData) => {
     return () => (hostIsMounted = false);
   }
 
-  useEffect(useApiCallEffect, [apiServiceCall]);
+  useEffect(apiCallEffect, [apiServiceCall]);
 
   return apiCallState;
 };
