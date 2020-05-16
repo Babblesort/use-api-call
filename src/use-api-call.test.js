@@ -25,7 +25,7 @@ describe('useApiCall', () => {
     const apiCall = jest
       .fn()
       .mockReturnValue(
-        new Promise((resolve) => setTimeout(() => resolve([]), 25))
+        new Promise((resolve) => setTimeout(() => resolve([]), 50))
       );
 
     render(<UseApiCallTestHarness apiCall={apiCall} />);
@@ -38,7 +38,7 @@ describe('useApiCall', () => {
     const apiCall = jest
       .fn()
       .mockReturnValue(
-        new Promise((resolve) => setTimeout(() => resolve(['one']), 25))
+        new Promise((resolve) => setTimeout(() => resolve(['one']), 50))
       );
 
     render(<UseApiCallTestHarness apiCall={apiCall} />);
@@ -53,7 +53,7 @@ describe('useApiCall', () => {
       .fn()
       .mockReturnValue(
         new Promise((_, reject) =>
-          setTimeout(() => reject(Error('broken')), 25)
+          setTimeout(() => reject(Error('broken')), 50)
         )
       );
 
@@ -69,7 +69,7 @@ describe('useApiCall', () => {
       .fn()
       .mockReturnValue(
         new Promise((_, reject) =>
-          setTimeout(() => reject(Error('expected error message')), 25)
+          setTimeout(() => reject(Error('expected error message')), 50)
         )
       );
 
