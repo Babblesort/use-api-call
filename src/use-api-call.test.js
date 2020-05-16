@@ -17,66 +17,54 @@ const UseApiCallTestHarness = ({ apiCall }) => {
     );
   }
 
-  return data.map((item) => <div key={item}>{item}</div>);
+  return (
+    <div>
+      {data.map((item) => (
+        <div key={item}>{item}</div>
+      ))}
+    </div>
+  );
 };
 
 describe('useApiCall', () => {
-  test('sets loading state when apiCall begins', async () => {
-    const apiCall = jest
-      .fn()
-      .mockReturnValue(
-        new Promise((resolve) => setTimeout(() => resolve([]), 50))
-      );
+  test('sets loading state and then renders data when apiCall succeeds', async () => {
+    const apiCall = jest.fn().mockResolvedValue(['a', 'b']);
 
     render(<UseApiCallTestHarness apiCall={apiCall} />);
 
     const loadingMessage = await screen.findByText('loading');
     expect(loadingMessage).toBeVisible();
-  });
 
-  test('turns off loading state and makes api return data available when apiCall is successful', async () => {
-    const apiCall = jest
-      .fn()
-      .mockReturnValue(
-        new Promise((resolve) => setTimeout(() => resolve(['one']), 50))
-      );
-
-    render(<UseApiCallTestHarness apiCall={apiCall} />);
-
-    const dataItem = await screen.findByText('one');
+    const dataItem = await screen.findByText('a');
     expect(dataItem).toBeVisible();
     expect(screen.queryByText('loading')).toBeNull();
   });
 
-  test('turns loading state off and error state on when apiCall throws', async () => {
-    const apiCall = jest
-      .fn()
-      .mockReturnValue(
-        new Promise((_, reject) =>
-          setTimeout(() => reject(Error('broken')), 50)
-        )
-      );
+  test('sets loading state and then sets error state when apiCall throws', async () => {
+    const apiCall = jest.fn().mockRejectedValue(Error('broken'));
 
     render(<UseApiCallTestHarness apiCall={apiCall} />);
 
-    const errorMessage = await screen.findByText('error');
-    expect(errorMessage).toBeVisible();
+    const loadingMessage = await screen.findByText('loading');
+    expect(loadingMessage).toBeVisible();
+
+    const errorDisplay = await screen.findByText('error');
+    expect(errorDisplay).toBeVisible();
     expect(screen.queryByText('loading')).toBeNull();
   });
 
   test('captures error object when apiCall throws', async () => {
-    const apiCall = jest
-      .fn()
-      .mockReturnValue(
-        new Promise((_, reject) =>
-          setTimeout(() => reject(Error('expected error message')), 50)
-        )
-      );
+    const thrownErrorMessage = 'all is borked';
+    const apiCall = jest.fn().mockRejectedValue(Error(thrownErrorMessage));
 
     render(<UseApiCallTestHarness apiCall={apiCall} />);
 
-    const errorMessage = await screen.findByText('expected error message');
+    const loadingMessage = await screen.findByText('loading');
+    expect(loadingMessage).toBeVisible();
+
+    const errorDisplay = await screen.findByText('error');
+    expect(errorDisplay).toBeVisible();
+    const errorMessage = await screen.findByText(thrownErrorMessage);
     expect(errorMessage).toBeVisible();
-    expect(screen.queryByText('loading')).toBeNull();
   });
 });
