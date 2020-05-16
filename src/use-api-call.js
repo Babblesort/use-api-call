@@ -54,7 +54,9 @@ export const useApiCall = (apiServiceCall, initialData) => {
 
     processApiCall();
 
-    return () => (hostIsMounted = false);
+    return () => {
+      hostIsMounted = false;
+    };
   }
 
   useEffect(apiCallEffect, [apiServiceCall]);
